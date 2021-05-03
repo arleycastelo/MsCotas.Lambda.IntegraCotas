@@ -1,0 +1,23 @@
+service: lambda
+
+frameworkVersion: "1.53.0"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+
+environment:
+  COMMENTS_NOTIFICATION_HOST: apis-stg.vortx.com.br/cotas/publicarCotas
+  COMMENTS_NOTIFICATION_PATH: 
+  COMMENTS_NOTIFICATION_API_KEY: "2b320de7cdf2c17decd0019275bcd2a52fb1aeda466c413a1465163ed9cd8f26"
+
+functions:
+  mscotaslambdaintegracotas:
+    handler: handler
+    events:
+      - schedule: cron(0/1 * ? * MON-FRI *)
+        name: mscotaslambdaintegracotas
+        description: "MsCotas - Integração de Cotas"
+        rate: cron(0/1 * ? * MON-FRI *)
+        enabled: false

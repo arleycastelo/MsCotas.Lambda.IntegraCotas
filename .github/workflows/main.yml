@@ -1,0 +1,50 @@
+name: Deploy Serveless
+
+on:    
+  pull_request:
+    branches:
+    - main
+    - stage
+    
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: change production serveless yml
+      if: github.ref == 'refs/heads/main'
+      run : |
+             rm serverless.yml
+             mv serverless-prod.yml serverless.yml
+             cat serverless.yml
+             ls             
+        
+    - run: npm ci
+      if: github.ref == 'refs/heads/stage'
+    - name: serverless stage deploy
+      uses: serverless/github-action@v1.53.0
+      with:
+        args: deploy
+      env:                
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_STAGE_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_STAGE_SECRET_ACCESS_KEY }}
+    
+    - run: npm ci
+      if: github.ref == 'refs/heads/main'
+    - name: serverless production deploy
+      uses: serverless/github-action@v1.53.0
+      with:
+        args: deploy
+      env:                
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PRD_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PRD_SECRET_ACCESS_KEY }}
